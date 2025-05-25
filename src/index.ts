@@ -1,10 +1,9 @@
 // src/index.ts
 
-import { Env } from './types'; // 导入 Env 类型
-import { handleIngestRequest } from './handlers/ingestHandler'; // 导入数据摄入处理器
-// 将来在这里导入其他处理器，例如：
-// import { handleSessionRequest } from './handlers/sessionHandler';
-// import { handleQueryRequest } from './handlers/queryHandler';
+import { Env } from './types';
+import { handleIngestRequest } from './handlers/ingestHandler';
+import { handleStartSession, handleEndSession } from './handlers/sessionHandler'; // 导入会话处理器
+// import { handleQueryRequest } from './handlers/queryHandler'; // 将来导入查询处理器
 
 export default {
   async fetch(
@@ -13,29 +12,32 @@ export default {
     ctx: ExecutionContext
   ): Promise<Response> {
     const url = new URL(request.url);
-    const path = url.pathname; // 获取请求的路径，例如 "/api/ingest"
-    const method = request.method; // 获取请求的方法，例如 "POST"
+    const path = url.pathname;
+    const method = request.method;
 
-    console.log(`Received request: ${method} ${path}`); // 记录请求信息
+    console.log(`ROUTER: Received request: ${method} ${path}`);
 
-    // 基本的路由逻辑
-    // 路由 1: 处理传感器数据摄入
-    if (method === 'POST' && path === '/api/ingest') { // 我们定义 /api/ingest 作为数据摄入的端点
+    // 数据摄入路由
+    if (method === 'POST' && path === '/api/ingest') {
       return handleIngestRequest(request, env);
     }
-
-    // 路由 2: 处理会话管理 (示例，尚未实现)
-    // else if (path.startsWith('/api/session')) {
-    //   return handleSessionRequest(request, env);
-    // }
-
-    // 路由 3: 处理数据查询 (示例，尚未实现)
+    // 开始会话路由
+    else if (method === 'POST' && path === '/api/session/start') {
+      return handleStartSession(request, env);
+    }
+    // 结束会话路由
+    else if (method === 'POST' && path === '/api/session/end') { // 您也可以用 PUT 方法
+      return handleEndSession(request, env);
+    }
+    // 将来添加数据查询路由
     // else if (method === 'GET' && path.startsWith('/api/query')) {
     //   return handleQueryRequest(request, env);
     // }
 
-    // 如果没有匹配的路由
-    console.log(`No route matched for ${method} ${path}`);
-    return new Response('Not Found. This endpoint does not exist.', { status: 404 });
+    console.warn(`ROUTER: No route matched for ${method} ${path}`);
+    return new Response(JSON.stringify({ message: 'Endpoint not found.' }), {
+      status: 404,
+      headers: { 'Content-Type': 'application/json' },
+    });
   },
 };
