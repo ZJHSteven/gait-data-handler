@@ -5,7 +5,7 @@
  */
 export interface Esp32DataPayload {
     device: string;
-    timestamp: number;
+    timestamp: string;
     quaternions: Array<{ w: number; x: number; y: number; z: number }>; // 您已更正此字段名
     note?: string;
   }
