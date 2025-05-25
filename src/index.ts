@@ -3,7 +3,7 @@
 import { Env } from './types';
 import { handleIngestRequest } from './handlers/ingestHandler';
 import { handleStartSession, handleEndSession, handleListSessions } from './handlers/sessionHandler'; // 导入会话处理器
-// import { handleQueryRequest } from './handlers/queryHandler'; // 将来导入查询处理器
+import { handleQueryDataByExperimentName } from './handlers/queryHandler'; // 导入新的查询处理器
 
 export default {
   async fetch(
@@ -33,11 +33,14 @@ export default {
 	else if (method === 'GET' && path === '/api/sessions') {
 		return handleListSessions(request, env);
 	  }
-    // 将来添加数据查询路由
-    // else if (method === 'GET' && path.startsWith('/api/query')) {
-    //   return handleQueryRequest(request, env);
-    // }
-
+  // 数据查询路由
+    // 示例: GET /api/data/experiment?name=MyExperimentName 
+    // (注意：这里的路径是 /api/data/experiment，与 queryHandler 中假设的略有不同，您可以统一)
+    else if (method === 'GET' && path === '/api/data/experiment') { 
+      return handleQueryDataByExperimentName(request, env);
+    }
+    
+    // --- 如果没有匹配的路由 ---
     console.warn(`ROUTER: No route matched for ${method} ${path}`);
     return new Response(JSON.stringify({ message: 'Endpoint not found.' }), {
       status: 404,
