@@ -69,7 +69,7 @@ export async function handleQueryDataByExperimentName(request: Request, env: Env
       SELECT device, timestamp, quaternions, note 
       FROM gait_data 
       WHERE timestamp >= ? AND timestamp <= ?  -- 查询在此时间范围内的所有记录
-      ORDER BY device, timestamp ASC;          -- 按设备名称排序，然后按时间戳升序排序
+      ORDER BY timestamp, device ASC;          -- 按设备名称排序，然后按时间戳升序排序
     `;
     const gaitDataStmt = env.DB.prepare(gaitDataSql).bind(sessionInfo.start_time, sessionInfo.end_time);
     
