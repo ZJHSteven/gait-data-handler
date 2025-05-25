@@ -1,15 +1,22 @@
 // src/types.ts
 
 /**
- * 定义 ESP32 发送过来的数据包结构。
+ * 代表一秒钟的传感器数据结构
  */
-export interface Esp32DataPayload {
-    device: string;
-    timestamp: string;
-    quaternions: Array<{ w: number; x: number; y: number; z: number }>; // 您已更正此字段名
-    note?: string;
+export interface SecondData {
+    timestamp: string; // 该秒的 ISO 8601 UTC 时间戳
+    quaternions: Array<{ w: number; x: number; y: number; z: number }>; // 该秒内的50个四元数样本
+    note?: string;      // (可选) 针对这一秒的备注
   }
   
+  /**
+   * ESP32 发送过来的批处理数据包结构 (例如包含10秒的数据)
+   */
+  export interface Esp32BatchedDataPayload {
+    device: string;               // 设备/关节标识
+    // start_timestamp: string;   // (可选) 批处理包的起始时间戳，用于校验或记录
+    seconds_data: SecondData[];   // 包含多秒数据的数组
+  }
 /**
 * 定义我们的 Worker 环境中绑定的资源。
 */
