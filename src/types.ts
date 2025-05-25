@@ -47,4 +47,27 @@ export interface StartSessionPayload {
     notes?: string;
     message: string;
     end_time?: string; // 结束会话时可以包含这个
-  }
+}
+  
+/**
+ * 代表 gait_data 表中的一条记录的结构 (通常代表一秒的传感器数据)
+ * 用于从数据库查询出来的数据，以及API响应中包含的数据。
+ */
+export interface GaitDataRecord {
+  device: string;      // 设备/关节标识
+  timestamp: string;   // 该条记录的 ISO 8601 UTC 时间戳
+  quaternions: Array<{ w: number; x: number; y: number; z: number }>; // 该时间戳对应的四元数样本数组
+  note?: string;      // (可选) 针对这条记录的备注
+}
+
+/**
+ * 数据查询成功时，Worker 返回给前端的响应体结构
+ */
+export interface QueryDataResponse { // 改个更具体的名字，避免与通用的 QueryResponse 混淆
+  experiment_name: string;   // 被查询的实验名称
+  start_time: string;        // 实验的开始时间 (ISO 8601 UTC)
+  end_time: string | null;   // 实验的结束时间 (ISO 8601 UTC)，如果实验未结束则为 null
+  data_count: number;        // 本次查询实际返回的 gait_data 记录数量
+  gait_data_records: GaitDataRecord[]; // 查询到的步态数据记录数组
+  message: string;           // 操作结果的消息
+}
