@@ -227,3 +227,37 @@ export async function handleEndSession(request: Request, env: Env): Promise<Resp
     });
   }
 }
+
+
+// 处理列出所有实验会话的请求
+export async function handleListSessions(request: Request, env: Env): Promise<Response> {
+    try {
+      // 定义 SQL 查询语句，用于从 experiment_sessions 表中选择所有会话的相关信息
+      // 按 start_time 降序排列，使最新的会话显示在前面
+      const sql = `
+        SELECT experiment_name, start_time, end_time, notes, created_at 
+        FROM experiment_sessions 
+        ORDER BY start_time DESC; 
+      `;
+      // 准备 SQL 语句
+      const stmt = env.DB.prepare(sql);
+      // 执行查询并获取所有结果行
+      // .all() 用于执行返回多行的 SQL 查询
+      const { results } = await stmt.all(); 
+  
+      // 成功获取数据，返回 200 OK 状态码和会话列表
+      // 如果 results 为 undefined 或 null (理论上 .all() 会返回数组或抛异常)，则默认为空数组
+      return new Response(JSON.stringify({ sessions: results || [] }), {
+        status: 200, // 200 OK
+        headers: { 'Content-Type': 'application/json' }, // 设置响应头为 JSON
+      });
+    } catch (e: any) { // 捕获数据库查询或其他过程中可能发生的任何错误
+      // 在 Worker 日志中记录发生的错误
+      console.error('LIST_SESSIONS: Error listing sessions:', e);
+      // 返回 500 Internal Server Error 状态码和错误信息
+      return new Response(JSON.stringify({ message: 'Error fetching session list.', errorDetails: e?.message }), {
+        status: 500, // 500 Internal Server Error
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  }

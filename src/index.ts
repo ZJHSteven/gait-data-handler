@@ -2,7 +2,7 @@
 
 import { Env } from './types';
 import { handleIngestRequest } from './handlers/ingestHandler';
-import { handleStartSession, handleEndSession } from './handlers/sessionHandler'; // 导入会话处理器
+import { handleStartSession, handleEndSession, handleListSessions } from './handlers/sessionHandler'; // 导入会话处理器
 // import { handleQueryRequest } from './handlers/queryHandler'; // 将来导入查询处理器
 
 export default {
@@ -28,7 +28,11 @@ export default {
     // 结束会话路由
     else if (method === 'POST' && path === '/api/session/end') { // 您也可以用 PUT 方法
       return handleEndSession(request, env);
-    }
+	}
+	// 列出会话路由
+	else if (method === 'GET' && path === '/api/sessions') {
+		return handleListSessions(request, env);
+	  }
     // 将来添加数据查询路由
     // else if (method === 'GET' && path.startsWith('/api/query')) {
     //   return handleQueryRequest(request, env);
