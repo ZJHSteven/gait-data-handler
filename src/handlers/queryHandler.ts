@@ -27,14 +27,14 @@ export async function handleQueryDataByExperimentName(request: Request, env: Env
     // --- 步骤 1: 根据 experiment_name 查询 experiment_sessions 表获取会话信息 ---
     console.log(`QUERY_HANDLER: Fetching session info for experiment: ${experimentName}`);
     const sessionSql = `
-      SELECT start_time, end_time 
+      SELECT start_time, end_time, notes 
       FROM experiment_sessions 
       WHERE experiment_name = ?; 
     `; // '?' 是占位符
     const sessionStmt = env.DB.prepare(sessionSql).bind(experimentName); // 准备语句并绑定参数
     
     // .first<T>() 用于期望查询结果最多只有一行，并指定返回类型的结构
-    const sessionInfo = await sessionStmt.first<{ start_time: string; end_time: string | null }>(); 
+    const sessionInfo = await sessionStmt.first<{ start_time: string; end_time: string | null; notes: string | null }>();
 
     // 校验：检查是否找到了对应的实验会话
     if (!sessionInfo) {
@@ -80,6 +80,7 @@ export async function handleQueryDataByExperimentName(request: Request, env: Env
     // --- 步骤 3: 构建并返回最终的响应 ---
     const responsePayload: QueryDataResponse = {
       experiment_name: experimentName,
+      session_notes: sessionInfo.notes || null,
       start_time: sessionInfo.start_time,
       end_time: sessionInfo.end_time, // 此时 end_time 必然有值
       data_count: records.length,
