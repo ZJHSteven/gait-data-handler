@@ -56,7 +56,7 @@ export interface StartSessionPayload {
 export interface GaitDataRecord {
   device: string;      // 设备/关节标识
   timestamp: string;   // 该条记录的 ISO 8601 UTC 时间戳
-  quaternions: Array<{ w: number; x: number; y: number; z: number }>; // 该时间戳对应的四元数样本数组
+  quaternions: string; // 直接是字符串
   note?: string;      // (可选) 针对这条记录的备注
 }
 
