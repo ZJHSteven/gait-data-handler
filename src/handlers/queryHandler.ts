@@ -51,6 +51,7 @@ export async function handleQueryDataByExperimentName(request: Request, env: Env
       console.log(`QUERY_HANDLER: Experiment '${experimentName}' has started but not yet ended.`);
       const partialResponse: QueryDataResponse = { // 使用 QueryDataResponse 类型
         experiment_name: experimentName,
+        session_notes: sessionInfo.notes || null,
         start_time: sessionInfo.start_time,
         end_time: null, // 明确表示未结束
         data_count: 0,

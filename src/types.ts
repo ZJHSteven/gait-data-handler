@@ -65,7 +65,7 @@ export interface GaitDataRecord {
  */
 export interface QueryDataResponse { // 改个更具体的名字，避免与通用的 QueryResponse 混淆
   experiment_name: string;   // 被查询的实验名称
-  session_notes?: string | null; // 实验的备注信息 (如果有的话)
+  session_notes: string | null; // 实验的备注信息 (如果有的话)
   start_time: string;        // 实验的开始时间 (ISO 8601 UTC)
   end_time: string | null;   // 实验的结束时间 (ISO 8601 UTC)，如果实验未结束则为 null
   data_count: number;        // 本次查询实际返回的 gait_data 记录数量
