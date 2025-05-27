@@ -235,7 +235,7 @@ export async function handleListSessions(request: Request, env: Env): Promise<Re
       // 定义 SQL 查询语句，用于从 experiment_sessions 表中选择所有会话的相关信息
       // 按 start_time 降序排列，使最新的会话显示在前面
       const sql = `
-        SELECT experiment_name, start_time, end_time, notes, 
+        SELECT experiment_name, start_time, end_time, notes 
         FROM experiment_sessions 
         ORDER BY start_time DESC; 
       `;
