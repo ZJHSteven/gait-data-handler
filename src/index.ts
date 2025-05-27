@@ -52,6 +52,7 @@ export default {
       });
     }
 
+    let originalResponse: Response;
     const url = new URL(request.url);
     const path = url.pathname;
     const method = request.method;
@@ -60,32 +61,38 @@ export default {
 
     // 数据摄入路由
     if (method === 'POST' && path === '/api/ingest') {
-      return handleIngestRequest(request, env);
+      originalResponse = await handleIngestRequest(request, env);
     }
     // 开始会话路由
     else if (method === 'POST' && path === '/api/session/start') {
-      return handleStartSession(request, env);
+      originalResponse = await handleStartSession(request, env);
     }
     // 结束会话路由
     else if (method === 'POST' && path === '/api/session/end') { // 您也可以用 PUT 方法
-      return handleEndSession(request, env);
-	}
-	// 列出会话路由
-	else if (method === 'GET' && path === '/api/sessions') {
-		return handleListSessions(request, env);
-	  }
+      originalResponse = await handleEndSession(request, env);
+    }
+    // 列出会话路由
+    else if (method === 'GET' && path === '/api/sessions') {
+      originalResponse = await handleListSessions(request, env);
+    }
   // 数据查询路由
     // 示例: GET /api/data/experiment?name=MyExperimentName 
     // (注意：这里的路径是 /api/data/experiment，与 queryHandler 中假设的略有不同，您可以统一)
     else if (method === 'GET' && path === '/api/data/experiment') { 
-      return handleQueryDataByExperimentName(request, env);
+      originalResponse = await handleQueryDataByExperimentName(request, env);
     }
     
     // --- 如果没有匹配的路由 ---
-    console.warn(`ROUTER: No route matched for ${method} ${path}`);
-    return new Response(JSON.stringify({ message: 'Endpoint not found.' }), {
-      status: 404,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    else {
+      console.warn(`ROUTER: No route matched for ${method} ${path}`);
+      const notFoundResponsePayload = { message: '请求的端点未找到。' };
+      originalResponse = new Response(JSON.stringify(notFoundResponsePayload), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' }, // 内部处理器仍设置自己的Content-Type
+      });
+    }
+
+    // 为所有来自路由处理器的响应添加CORS头部
+    return addCorsHeaders(originalResponse, requestOrigin);
   },
 };
