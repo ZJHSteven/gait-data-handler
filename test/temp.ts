@@ -1,9 +1,10 @@
 // src/index.ts
-
 import { Env } from './types';
 import { handleIngestRequest } from './handlers/ingestHandler';
-import { handleStartSession, handleEndSession, handleListSessions } from './handlers/sessionHandler'; // 导入会话处理器
-import { handleQueryDataByExperimentName } from './handlers/queryHandler'; // 导入新的查询处理器
+import { handleStartSession, handleEndSession } from './handlers/sessionHandler';
+import { handleQueryDataByExperimentName } from './handlers/queryHandler';
+// 假设您在 sessionHandler.ts 中添加了 handleListSessions
+// import { handleListSessions } from './handlers/sessionHandler';
 
 // 定义允许的前端源
 const ALLOWED_ORIGIN = 'http://localhost:5173'; // 开发时
@@ -37,7 +38,6 @@ export default {
     env: Env,
     ctx: ExecutionContext
   ): Promise<Response> {
-
     const requestOrigin = request.headers.get('Origin');
 
     // 处理 OPTIONS 预检请求
@@ -52,40 +52,41 @@ export default {
       });
     }
 
+    // --------------------------------------------------------------------
+    // 您的路由逻辑，这里用 let originalResponse: Response; 来接收处理结果
+    // --------------------------------------------------------------------
+    let originalResponse: Response;
     const url = new URL(request.url);
     const path = url.pathname;
     const method = request.method;
 
-    console.log(`ROUTER: Received request: ${method} ${path}`);
+    console.log(`ROUTER: Received request: ${method} ${path}${url.search}`);
 
-    // 数据摄入路由
     if (method === 'POST' && path === '/api/ingest') {
-      return handleIngestRequest(request, env);
+      originalResponse = await handleIngestRequest(request, env);
     }
-    // 开始会话路由
     else if (method === 'POST' && path === '/api/session/start') {
-      return handleStartSession(request, env);
+      originalResponse = await handleStartSession(request, env);
     }
-    // 结束会话路由
-    else if (method === 'POST' && path === '/api/session/end') { // 您也可以用 PUT 方法
-      return handleEndSession(request, env);
-	}
-	// 列出会话路由
-	else if (method === 'GET' && path === '/api/sessions') {
-		return handleListSessions(request, env);
-	  }
-  // 数据查询路由
-    // 示例: GET /api/data/experiment?name=MyExperimentName 
-    // (注意：这里的路径是 /api/data/experiment，与 queryHandler 中假设的略有不同，您可以统一)
+    else if (method === 'POST' && path === '/api/session/end') {
+      originalResponse = await handleEndSession(request, env);
+    }
     else if (method === 'GET' && path === '/api/data/experiment') { 
-      return handleQueryDataByExperimentName(request, env);
+      originalResponse = await handleQueryDataByExperimentName(request, env);
+    }
+    // else if (method === 'GET' && path === '/api/sessions') {
+      // originalResponse = await handleListSessions(request, env); // 假设您实现了这个
+    // }
+    else {
+      console.warn(`ROUTER: No route matched for ${method} ${path}`);
+      const notFoundResponsePayload = { message: '请求的端点未找到。' };
+      originalResponse = new Response(JSON.stringify(notFoundResponsePayload), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' }, // 内部处理器仍设置自己的Content-Type
+      });
     }
     
-    // --- 如果没有匹配的路由 ---
-    console.warn(`ROUTER: No route matched for ${method} ${path}`);
-    return new Response(JSON.stringify({ message: 'Endpoint not found.' }), {
-      status: 404,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    // 为所有来自路由处理器的响应添加CORS头部
+    return addCorsHeaders(originalResponse, requestOrigin);
   },
 };
