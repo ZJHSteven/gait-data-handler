@@ -6,17 +6,27 @@ import { handleStartSession, handleEndSession, handleListSessions } from './hand
 import { handleQueryDataByExperimentName } from './handlers/queryHandler'; // 导入新的查询处理器
 
 // 定义允许的前端源
-const ALLOWED_ORIGIN = 'http://localhost:5173'; // 开发时
-// const ALLOWED_ORIGIN_PROD = 'https://your-production-frontend-domain.com'; // 生产时
+const ALLOWED_ORIGINS = [
+  'http://localhost:5173',
+  'https://gait-ui.pages.dev', // 开发时
+  // 'https://your-production-frontend-domain.com', // 生产时
+  // 可以继续添加更多前端源
+];
 
 function addCorsHeaders(response: Response, requestOrigin: string | null): Response {
   // 创建一个新的 Headers 对象，基于原始响应的头部
   const newHeaders = new Headers(response.headers);
 
   // 动态设置 Access-Control-Allow-Origin
-  // 在生产环境中，您应该只允许特定的前端域名
-  // 为了开发方便，您可以暂时用 localhost，或者在部署时通过环境变量控制
-  newHeaders.set('Access-Control-Allow-Origin', ALLOWED_ORIGIN); // 或者 requestOrigin 如果您想更动态但需谨慎
+  let allowOrigin = '';
+  if (requestOrigin && ALLOWED_ORIGINS.includes(requestOrigin)) {
+    allowOrigin = requestOrigin;
+  } else {
+    allowOrigin = '';
+  }
+  if (allowOrigin) {
+    newHeaders.set('Access-Control-Allow-Origin', allowOrigin);
+  }
   // newHeaders.set('Access-Control-Allow-Origin', '*'); // 允许所有源，仅用于测试，不推荐生产
 
   newHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -42,9 +52,13 @@ export default {
 
     // 处理 OPTIONS 预检请求
     if (request.method === 'OPTIONS') {
+      let allowOrigin = '';
+      if (requestOrigin && ALLOWED_ORIGINS.includes(requestOrigin)) {
+        allowOrigin = requestOrigin;
+      }
       return new Response(null, {
         headers: {
-          'Access-Control-Allow-Origin': ALLOWED_ORIGIN, // 或者 requestOrigin
+          ...(allowOrigin ? { 'Access-Control-Allow-Origin': allowOrigin } : {}),
           'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key', // 确保包含前端实际发送的头部
           'Access-Control-Max-Age': '86400', // 预检请求结果的缓存时间（秒）
